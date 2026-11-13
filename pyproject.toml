@@ -1,0 +1,36 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "sipl-toolkit"
+version = "0.1.0"
+description = "SIPL Language Toolkit: parser, AST, interpreter, trace, CLI and debugger for the SIPL teaching language"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+dependencies = ["lark>=1.1"]
+
+[project.optional-dependencies]
+dev = ["pytest", "pytest-cov", "ruff", "mypy", "jsonschema", "build", "twine"]
+
+[project.scripts]
+sipl = "sipl.cli:main"
+sipl-dap = "sipl.dap.server:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/sipl"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"grammar/sipl.lark" = "sipl/sipl.lark"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+src = ["src", "tests"]
+
+[tool.mypy]
+strict = true
+files = ["src"]
