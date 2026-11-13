@@ -1,0 +1,4 @@
+# expect: 3:24 unexpected-token
+begin
+  if x > 0 then y := 1 end
+end

@@ -1,0 +1,2 @@
+# expect: 2:16 unexpected-token
+begin if x > 1 x := 1 else skip end

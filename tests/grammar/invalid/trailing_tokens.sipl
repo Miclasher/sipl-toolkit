@@ -1,0 +1,2 @@
+# expect: 2:16 unexpected-token
+begin skip end skip

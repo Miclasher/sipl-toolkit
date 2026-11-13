@@ -1,0 +1,7 @@
+# nested conditionals
+begin
+  if x > 0 then
+    if x > 10 then y := 2 else y := 1
+  else
+    y := 0
+end

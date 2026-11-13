@@ -1,0 +1,66 @@
+{
+  "name": "vscode-sipl",
+  "displayName": "SIPL",
+  "description": "SIPL language support and debugger (F5, breakpoints, variables).",
+  "publisher": "sipl-toolkit",
+  "version": "0.1.0",
+  "license": "SEE LICENSE IN LICENSE",
+  "engines": { "vscode": "^1.80.0" },
+  "categories": ["Programming Languages", "Debuggers", "Snippets"],
+  "main": "./extension.js",
+  "contributes": {
+    "languages": [
+      { "id": "sipl", "aliases": ["SIPL"], "extensions": [".sipl"], "configuration": "./language-configuration.json" }
+    ],
+    "grammars": [
+      { "language": "sipl", "scopeName": "source.sipl", "path": "./syntaxes/sipl.tmLanguage.json" }
+    ],
+    "snippets": [
+      { "language": "sipl", "path": "./snippets/sipl.json" }
+    ],
+    "breakpoints": [{ "language": "sipl" }],
+    "debuggers": [
+      {
+        "type": "sipl",
+        "label": "SIPL Debug",
+        "languages": ["sipl"],
+        "configurationAttributes": {
+          "launch": {
+            "required": ["program"],
+            "properties": {
+              "program": { "type": "string", "description": "Path to the .sipl program to debug.", "default": "${file}" },
+              "inputs": {
+                "type": "object",
+                "description": "Initial values of input variables, e.g. {\"X\": 5, \"Y\": 2}.",
+                "additionalProperties": { "type": "integer" },
+                "default": {}
+              },
+              "maxSteps": { "type": "number", "description": "Maximum number of execution steps.", "default": 100000 },
+              "stopOnEntry": { "type": "boolean", "description": "Stop at the first statement.", "default": true },
+              "pythonPath": { "type": "string", "description": "Python interpreter used to run the adapter (overrides sipl.pythonPath).", "default": "" }
+            }
+          }
+        },
+        "initialConfigurations": [
+          { "type": "sipl", "request": "launch", "name": "Debug SIPL program", "program": "${file}", "inputs": {}, "stopOnEntry": true }
+        ],
+        "configurationSnippets": [
+          {
+            "label": "SIPL: Debug program",
+            "description": "Launch the current SIPL file in the debugger",
+            "body": { "type": "sipl", "request": "launch", "name": "Debug SIPL program", "program": "^\"\\${file}\"", "inputs": {}, "stopOnEntry": true }
+          }
+        ]
+      }
+    ],
+    "configuration": {
+      "title": "SIPL",
+      "properties": {
+        "sipl.pythonPath": { "type": "string", "default": "python3", "description": "Python interpreter used to launch the SIPL debug adapter." },
+        "sipl.dapCommand": { "type": "array", "items": { "type": "string" }, "default": null, "description": "Optional override: full command (executable followed by args) for the debug adapter." }
+      }
+    }
+  },
+  "devDependencies": { "@vscode/vsce": "^2.22.0" },
+  "scripts": { "validate": "node scripts/validate.js", "package": "vsce package" }
+}

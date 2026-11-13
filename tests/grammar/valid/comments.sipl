@@ -1,0 +1,6 @@
+# header
+begin # open
+  x := 1; # first
+  # whole line
+  y := 2 # last
+end # done

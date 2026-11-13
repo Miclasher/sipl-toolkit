@@ -1,0 +1,2 @@
+# expect: 2:9 unexpected-token
+begin x = 1 end

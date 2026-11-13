@@ -1,0 +1,1 @@
+begin my_var1 := 1; begin_x := my_var1 + endx; doit := begin_x end

@@ -1,0 +1,4 @@
+# expect: 3:10 unexpected-character
+begin
+  x := 1 @ 2
+end

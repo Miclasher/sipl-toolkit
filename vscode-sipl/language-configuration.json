@@ -1,0 +1,14 @@
+{
+  "comments": { "lineComment": "#" },
+  "brackets": [["(", ")"], ["begin", "end"]],
+  "autoClosingPairs": [{ "open": "(", "close": ")" }],
+  "surroundingPairs": [["(", ")"], ["begin", "end"]],
+  "indentationRules": {
+    "increaseIndentPattern": "^.*\\b(begin|do|then|else)\\s*(#.*)?$",
+    "decreaseIndentPattern": "^\\s*end\\b.*$"
+  },
+  "onEnterRules": [
+    { "beforeText": "^.*\\b(begin|do|then|else)\\s*(#.*)?$", "action": { "indent": "indent" } }
+  ],
+  "folding": { "markers": { "start": "\\bbegin\\s*(#.*)?$", "end": "^\\s*end\\b" } }
+}

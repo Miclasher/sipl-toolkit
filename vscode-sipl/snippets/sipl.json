@@ -1,0 +1,7 @@
+{
+  "while": { "prefix": "while", "body": ["while ${1:X > 0} do", "begin", "\t$0", "end"], "description": "while loop" },
+  "if-else": { "prefix": "ifelse", "body": ["if ${1:X > 0} then", "\t${2:skip}", "else", "\t${3:skip}"], "description": "if-then-else" },
+  "begin-end": { "prefix": "begin", "body": ["begin", "\t$0", "end"], "description": "begin/end block" },
+  "assign": { "prefix": "assign", "body": ["${1:X} := ${2:0}"], "description": "assignment" },
+  "program": { "prefix": "program", "body": ["# ${1:program}", "begin", "\t${2:Y} := ${3:0};", "\t${4:skip}", "end"], "description": "program skeleton" }
+}

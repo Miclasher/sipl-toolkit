@@ -1,0 +1,2 @@
+# expect: 2:13 unexpected-token
+begin skip; do := 1 end

@@ -1,0 +1,4 @@
+# expect: 5:1 unexpected-eof
+begin
+  x := 1;
+  y := 2

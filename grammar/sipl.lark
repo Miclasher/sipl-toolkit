@@ -1,0 +1,65 @@
+// SIPL grammar (LALR). Rule names in comments refer to the textbook BNF:
+//   P ::= begin S end
+//   S ::= x := a | S1 ; S2 | if b then S1 else S2 | while b do S | begin S end | skip
+//   a ::= n | x | a1 + a2 | a1 - a2 | a1 * a2 | (a)
+//   b ::= a1 = a2 | a1 > a2 | b1 or b2 | not b | (b)
+// Ambiguities are removed by stratifying the rules (see grammar/README.md).
+
+// ---- start symbols ----
+program: BEGIN seq END                          // P1
+
+// ---- statements ----
+?seq: stmt (SEMI stmt)*                         // S2  (flat; `;` needs a statement on both sides)
+?stmt: assign | ifstmt | whilestmt | block | skip
+assign: NAME ASSIGN aexp                        // S1
+ifstmt: IF bexp THEN stmt ELSE stmt             // S3
+whilestmt: WHILE bexp DO stmt                   // S4
+block: BEGIN seq END                            // S5
+skip: SKIP                                      // S6
+
+// ---- arithmetic: '*' binds tighter than '+' '-', all left-associative ----
+?aexp: aexp PLUS term -> add                    // A3
+     | aexp MINUS term -> sub                   // A4
+     | term
+?term: term STAR atom -> mul                    // A5
+     | atom
+?atom: INT -> num                               // A1
+     | MINUS INT -> neg                         // A1 (negative literal, operand position only)
+     | NAME -> var                              // A2
+     | LPAR aexp RPAR -> parena                 // A6
+
+// ---- conditions: 'not' binds tighter than 'or'; comparisons take arithmetic operands ----
+?bexp: bexp OR bterm -> or_                     // B3
+     | bterm
+?bterm: NOT bterm -> not_                       // B4
+      | batom
+?batom: aexp EQ aexp -> eq                      // B1
+      | aexp GT aexp -> gt                      // B2
+      | LPAR bexp RPAR -> parenb                // B5
+
+// ---- terminals ----
+BEGIN: /begin\b/
+END: /end\b/
+IF: /if\b/
+THEN: /then\b/
+ELSE: /else\b/
+WHILE: /while\b/
+DO: /do\b/
+SKIP: /skip\b/
+OR: /or\b|∨/
+NOT: /not\b|¬/
+NAME: /(?!(?:begin|end|if|then|else|while|do|skip|or|not)\b)[A-Za-z][A-Za-z0-9_]*/
+INT: /[0-9]+/
+ASSIGN: ":="
+SEMI: ";"
+PLUS: "+"
+MINUS: "-"
+STAR: "*"
+EQ: "="
+GT: ">"
+LPAR: "("
+RPAR: ")"
+
+COMMENT: /#[^\n]*/
+%ignore COMMENT
+%ignore /[ \t\r\n]+/

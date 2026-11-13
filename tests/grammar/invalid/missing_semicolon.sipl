@@ -1,0 +1,2 @@
+# expect: 2:14 unexpected-token
+begin x := 1 y := 2 end
