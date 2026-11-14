@@ -1,0 +1,4 @@
+# never terminates: stopped by the step limit
+begin
+  while 1 = 1 do skip
+end

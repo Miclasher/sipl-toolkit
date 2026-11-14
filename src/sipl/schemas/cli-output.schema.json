@@ -1,0 +1,83 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://sipl-toolkit/schemas/cli-output.schema.json",
+  "title": "sipl CLI --json output (schema_version 1)",
+  "type": "object",
+  "required": ["schema_version", "command", "file", "ok"],
+  "properties": {
+    "schema_version": { "const": 1 },
+    "command": { "enum": ["parse", "check", "run", "trace"] },
+    "file": { "type": "string" },
+    "ok": { "type": "boolean" },
+    "diagnostics": { "type": "array", "items": { "$ref": "#/$defs/diagnostic" } },
+    "ast": { "$ref": "#/$defs/astNode" },
+    "status": { "enum": ["ok", "error"] },
+    "state": { "$ref": "#/$defs/state" },
+    "steps": { "type": "integer", "minimum": 0 },
+    "error": {
+      "oneOf": [
+        { "type": "null" },
+        {
+          "type": "object",
+          "required": ["code", "message", "span"],
+          "properties": {
+            "code": { "enum": ["undefined-variable", "step-limit-exceeded"] },
+            "message": { "type": "string" },
+            "span": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/span" }] }
+          }
+        }
+      ]
+    },
+    "events": { "type": "array", "items": { "$ref": "#/$defs/event" } }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "ok": { "const": false } } },
+      "then": {
+        "anyOf": [{ "required": ["diagnostics"] }, { "required": ["status", "error"] }]
+      }
+    },
+    { "if": { "properties": { "command": { "const": "parse" }, "ok": { "const": true } } },
+      "then": { "required": ["ast"] } },
+    { "if": { "properties": { "command": { "enum": ["run", "trace"] }, "diagnostics": false } },
+      "then": { "required": ["status", "state", "steps", "error"] } },
+    { "if": { "properties": { "command": { "const": "trace" }, "status": { "type": "string" } },
+              "required": ["status"] },
+      "then": { "required": ["events"] } }
+  ],
+  "$defs": {
+    "state": { "type": "object", "additionalProperties": { "type": "integer" } },
+    "span": {
+      "type": "object",
+      "required": ["start", "end", "line", "col", "end_line", "end_col"],
+      "additionalProperties": { "type": "integer" }
+    },
+    "diagnostic": {
+      "type": "object",
+      "required": ["code", "message", "severity", "span"],
+      "properties": {
+        "code": { "type": "string" },
+        "message": { "type": "string" },
+        "severity": { "enum": ["error", "warning"] },
+        "span": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/span" }] },
+        "expected": { "type": "array", "items": { "type": "string" } }
+      }
+    },
+    "astNode": {
+      "type": "object",
+      "required": ["type", "span"],
+      "properties": { "type": { "type": "string" }, "span": { "$ref": "#/$defs/span" } }
+    },
+    "event": {
+      "type": "object",
+      "required": ["kind"],
+      "properties": {
+        "kind": {
+          "enum": ["program_started", "before_statement", "after_statement",
+                   "variable_changed", "condition_evaluated", "program_finished",
+                   "execution_error"]
+        }
+      }
+    }
+  }
+}

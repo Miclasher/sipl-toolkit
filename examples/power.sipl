@@ -1,0 +1,9 @@
+# x^y (textbook practical work 1); run with --var X=5 --var Y=2  ->  R = 25
+begin
+  R := 1;
+  while Y > 0 do
+  begin
+    R := R * X;
+    Y := Y - 1
+  end
+end

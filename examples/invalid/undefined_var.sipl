@@ -1,0 +1,4 @@
+# syntactically fine; running without --var Y fails at runtime
+begin
+  X := Y + 1
+end
