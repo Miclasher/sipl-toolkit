@@ -59,8 +59,9 @@ def _load(args: argparse.Namespace) -> tuple[Program | None, int]:
     """Parse the input file; prints diagnostics and returns (program, exit_code)."""
     try:
         source = _read(args.file)
-    except OSError as exc:
-        msg = f"cannot read {args.file}: {exc.strerror or exc}"
+    except (OSError, UnicodeDecodeError) as exc:
+        reason = exc.strerror if isinstance(exc, OSError) else "file is not valid UTF-8"
+        msg = f"cannot read {args.file}: {reason or exc}"
         if args.json:
             _emit(
                 {

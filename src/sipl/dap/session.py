@@ -76,10 +76,12 @@ class DebugSession:
         self._events: Iterator[Event] | None = None
         self._depth: dict[int, int] = {}
         self._stmt_lines: set[int] = set()
+        self._requested: list[int] = []
         self._breakpoints: set[int] = set()
         self._stop_on_entry = True
         self._current: _Stop | None = None
         self._prev_line = 0
+        self._prev_depth = -1
         self._done = False
         self._exit_code = 0
         self._configured = False
@@ -121,7 +123,10 @@ class DebugSession:
         handler = getattr(self, f"_req_{cmd}", None)
         if handler is None:
             return [self._response(req, error=f"unsupported request '{cmd}'")]
-        out: Messages = handler(req, req.get("arguments") or {})
+        try:
+            out: Messages = handler(req, req.get("arguments") or {})
+        except Exception as exc:  # noqa: BLE001 - a bad request must never kill the adapter
+            return [self._response(req, error=f"internal error handling '{cmd}': {exc}")]
         return out
 
     # ---- requests ----
@@ -140,8 +145,9 @@ class DebugSession:
             return [self._response(req, error="launch: 'program' is required")]
         try:
             source = Path(path).read_text(encoding="utf-8")
-        except OSError as exc:
-            return [self._response(req, error=f"cannot read {path}: {exc.strerror or exc}")]
+        except (OSError, UnicodeDecodeError) as exc:
+            reason = exc.strerror if isinstance(exc, OSError) else "file is not valid UTF-8"
+            return [self._response(req, error=f"cannot read {path}: {reason or exc}")]
         try:
             program = parse(source)
         except SiplSyntaxError as exc:
@@ -157,24 +163,38 @@ class DebugSession:
             return [self._response(req, error="launch: 'inputs' must map names to integers")]
         self._program, self._path = program, path
         self._depth, self._stmt_lines = _index_statements(program)
+        self._resolve_breakpoints()
+        self._current, self._done, self._exit_code = None, False, 0
+        self._prev_line, self._prev_depth, self._configured = 0, -1, False
         self._stop_on_entry = bool(args.get("stopOnEntry", True))
         self._events = execute(program, initial, max_steps=max_steps)
         return [self._response(req)]
 
-    def _req_setBreakpoints(self, req: dict[str, Any], args: dict[str, Any]) -> Messages:
-        requested = [int(b["line"]) for b in args.get("breakpoints", []) if "line" in b] or [
-            int(x) for x in args.get("lines", [])
-        ]
+    def _resolve_breakpoints(self) -> list[dict[str, Any]]:
+        """Slide each requested line to the next statement line; empty until a program is loaded."""
         resolved: list[dict[str, Any]] = []
         self._breakpoints = set()
-        for line in requested:
+        for line in self._requested:
             actual = min((ln for ln in self._stmt_lines if ln >= line), default=None)
             if actual is None:
                 resolved.append({"verified": False, "line": line, "message": "no statement here"})
             else:
                 self._breakpoints.add(actual)
                 resolved.append({"verified": True, "line": actual})
-        return [self._response(req, {"breakpoints": resolved})]
+        return resolved
+
+    def _req_setBreakpoints(self, req: dict[str, Any], args: dict[str, Any]) -> Messages:
+        self._requested = [
+            int(b["line"]) for b in args.get("breakpoints", []) if b.get("line") is not None
+        ] or [int(x) for x in args.get("lines", []) if x is not None]
+        if self._program is None:  # before launch: keep them, verify at launch
+            return [
+                self._response(
+                    req,
+                    {"breakpoints": [{"verified": False, "line": ln} for ln in self._requested]},
+                )
+            ]
+        return [self._response(req, {"breakpoints": self._resolve_breakpoints()})]
 
     def _req_setExceptionBreakpoints(self, req: dict[str, Any], args: dict[str, Any]) -> Messages:
         return [self._response(req, {"breakpoints": []})]
@@ -182,6 +202,8 @@ class DebugSession:
     def _req_configurationDone(self, req: dict[str, Any], args: dict[str, Any]) -> Messages:
         if self._events is None:
             return [self._response(req, error="configurationDone before successful launch")]
+        if self._configured:
+            return [self._response(req, error="configurationDone already received")]
         self._configured = True
         out = [self._response(req)]
         out += self._resume("entry" if self._stop_on_entry else None, mode="entry")
@@ -235,6 +257,8 @@ class DebugSession:
         return [self._response(req, {"variables": variables})]
 
     def _req_evaluate(self, req: dict[str, Any], args: dict[str, Any]) -> Messages:
+        if self._program is None:
+            return [self._response(req, error="no program launched")]
         expr = str(args.get("expression", "")).strip()
         state = self._state()
         try:
@@ -249,16 +273,29 @@ class DebugSession:
         return [self._response(req, {"result": result, "variablesReference": 0})]
 
     def _req_continue(self, req: dict[str, Any], args: dict[str, Any]) -> Messages:
+        if (err := self._not_running()) is not None:
+            return [self._response(req, error=err)]
         return [self._response(req, {"allThreadsContinued": True}), *self._resume(None, "continue")]
 
     def _req_next(self, req: dict[str, Any], args: dict[str, Any]) -> Messages:
+        if (err := self._not_running()) is not None:
+            return [self._response(req, error=err)]
         return [self._response(req), *self._resume("step", "next")]
 
     def _req_stepIn(self, req: dict[str, Any], args: dict[str, Any]) -> Messages:
+        if (err := self._not_running()) is not None:
+            return [self._response(req, error=err)]
         return [self._response(req), *self._resume("step", "in")]
 
     def _req_stepOut(self, req: dict[str, Any], args: dict[str, Any]) -> Messages:
+        if (err := self._not_running()) is not None:
+            return [self._response(req, error=err)]
         return [self._response(req), *self._resume("step", "out")]
+
+    def _not_running(self) -> str | None:
+        if self._events is None or self._done or not self._configured:
+            return "no running program (launch and configurationDone first)"
+        return None
 
     def _req_pause(self, req: dict[str, Any], args: dict[str, Any]) -> Messages:
         return [self._response(req, error="pause is not supported")]
@@ -300,6 +337,8 @@ class DebugSession:
                 line = ev.span.line if ev.span else 0
                 depth = self._depth.get(id(ev.node), 0)
                 prev, self._prev_line = self._prev_line, line
+                prev_depth, self._prev_depth = self._prev_depth, depth
+                nested_same_line = line == prev and depth > prev_depth
                 stop_reason: str | None = None
                 if mode == "entry":
                     stop_reason = "entry" if reason == "entry" else None
@@ -311,7 +350,7 @@ class DebugSession:
                     and depth < start_depth
                 ):
                     stop_reason = "step"
-                if stop_reason is None and line in self._breakpoints and line != prev:
+                if stop_reason is None and line in self._breakpoints and not nested_same_line:
                     stop_reason = "breakpoint"
                 if stop_reason is not None:
                     self._current = _Stop(ev)

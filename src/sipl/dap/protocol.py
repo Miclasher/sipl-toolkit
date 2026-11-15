@@ -20,13 +20,18 @@ def read_message(stream: BinaryIO) -> dict[str, Any] | None:
             break
         name, _, value = line.decode("ascii", "replace").partition(":")
         if name.lower() == "content-length":
-            length = int(value.strip())
+            try:
+                length = int(value.strip())
+            except ValueError:
+                length = None  # malformed header: ignore, wait for a valid one
     body = stream.read(length)
     if len(body) < length:
         return None
-    msg = json.loads(body.decode("utf-8"))
-    assert isinstance(msg, dict)
-    return msg
+    try:
+        msg = json.loads(body.decode("utf-8"))
+    except (ValueError, UnicodeDecodeError):
+        return {}  # undecodable body: surfaced to the server as a message without a type
+    return msg if isinstance(msg, dict) else {}
 
 
 def write_message(stream: BinaryIO, message: dict[str, Any]) -> None:

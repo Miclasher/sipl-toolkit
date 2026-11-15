@@ -202,13 +202,23 @@ def _diagnostic(source: str, exc: UnexpectedInput) -> Diagnostic:
     return Diagnostic("syntax-error", str(exc), None)
 
 
+def _too_deep() -> Diagnostic:
+    return Diagnostic(
+        "nesting-too-deep", "expression or block nesting is too deep for the parser", None
+    )
+
+
 def _run(source: str, start: str) -> Any:
     try:
         tree = _lark().parse(source, start=start)
         return _Builder().transform(tree)
     except UnexpectedInput as exc:
         raise SiplSyntaxError([_diagnostic(source, exc)]) from None
-    except VisitError as exc:  # pragma: no cover - builder never raises on valid trees
+    except RecursionError:
+        raise SiplSyntaxError([_too_deep()]) from None
+    except VisitError as exc:
+        if isinstance(exc.orig_exc, RecursionError):
+            raise SiplSyntaxError([_too_deep()]) from None
         raise SiplSyntaxError([Diagnostic("syntax-error", str(exc.orig_exc), None)]) from None
 
 
