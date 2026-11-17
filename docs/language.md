@@ -16,6 +16,7 @@ S ::= x := a                                        (S1)
     | begin S end                                   (S5)
     | skip                                          (S6)
 a ::= n | x | a1 + a2 | a1 - a2 | a1 * a2 | (a)     (A1 .. A6)
+    | a1 div a2                                    (A7, extension)
 b ::= a1 = a2 | a1 > a2 | b1 ∨ b2 | ¬ b | (b)       (B1 .. B5)
 ```
 
@@ -41,6 +42,11 @@ syntactic rules above; the interpreter's structure mirrors them (see `docs/defen
 statement; an empty `begin end` and a file consisting only of a comment are syntax errors.
 
 ### Extensions to the textbook BNF
+
+- **`a1 div a2`** (A7): integer division, same precedence as `*`, left-associative. It is
+  floor division (`-7 div 2 = -4`), which equals the usual `div` on naturals. `div` is a
+  reserved word. Division by zero makes the function undefined: runtime error
+  `division-by-zero` at the span of the divisor, exit code 2.
 
 1. **Identifiers.** The textbook uses single capital letters (M, N, R, X, Y). Any identifier
    of the form above is accepted.
@@ -144,5 +150,6 @@ raises a Python exception.
 |---|---|---|
 | `syntax-error`, `unexpected-token`, `unexpected-character`, `unexpected-eof` | parse | message names what was found and what was expected; line/column attached |
 | `undefined-variable` | run | read of an unassigned variable |
+| `division-by-zero` | run | `a div 0` |
 | `step-limit-exceeded` | run | the step budget was exhausted |
 | `io-error` | CLI | input file unreadable |

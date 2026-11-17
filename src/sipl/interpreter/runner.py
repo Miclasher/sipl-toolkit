@@ -7,7 +7,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from .. import ast
-from .evaluator import UndefinedVariable, eval_aexp, eval_bexp
+from .evaluator import EvaluationError, eval_aexp, eval_bexp
 from .events import (
     AfterStatement,
     BeforeStatement,
@@ -120,9 +120,9 @@ def execute(
                         stack.append(("check", node, True))
                 else:  # pragma: no cover
                     raise TypeError(f"unknown statement {node!r}")
-        except UndefinedVariable as exc:
+        except EvaluationError as exc:
             yield ExecutionError(
-                code="undefined-variable",
+                code=exc.code,
                 message=str(exc),
                 span=exc.span,
                 state=snapshot(state),

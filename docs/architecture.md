@@ -79,7 +79,7 @@ Events are emitted in this order per statement. `step` is the running step count
 | `ConditionEvaluated` (`condition_evaluated`) | `owner` (`If`/`While`), `value`, `span` | every time a condition is evaluated, incl. each loop check |
 | `AfterStatement` (`after_statement`) | `stmt`, `span`, `state`, `step` | when the statement completes; for `If` and `While` after the branch/loop finished |
 | `ProgramFinished` (`program_finished`) | `state`, `steps` | terminal, success |
-| `ExecutionError` (`execution_error`) | `code`, `message`, `span`, `state`, `steps` | terminal, failure (`undefined-variable`, `step-limit-exceeded`) |
+| `ExecutionError` (`execution_error`) | `code`, `message`, `span`, `state`, `steps` | terminal, failure (`undefined-variable`, `division-by-zero`, `step-limit-exceeded`) |
 
 Exactly one terminal event ends every stream. `Before`/`After` pairs nest properly and share
 the same `step` number, as the `trace` output for `power` shows:

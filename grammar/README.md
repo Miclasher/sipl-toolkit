@@ -20,6 +20,7 @@
 | A3 `a1 + a2` | `aexp` -> `add` | `BinOp("+")` |
 | A4 `a1 - a2` | `aexp` -> `sub` | `BinOp("-")` |
 | A5 `a1 * a2` | `term` -> `mul` | `BinOp("*")` |
+| A7 `a1 div a2` (extension) | `term` -> `div` | `BinOp("div")` |
 | A6 `(a)` | `atom` -> `parena` | `ParenA` |
 | B1 `a1 = a2` | `batom` -> `eq` | `Cmp("=")` |
 | B2 `a1 > a2` | `batom` -> `gt` | `Cmp(">")` |

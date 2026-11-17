@@ -13,7 +13,7 @@ from typing import Any
 
 from .. import ast
 from ..errors import SiplSyntaxError
-from ..interpreter import UndefinedVariable, eval_aexp, eval_bexp, execute
+from ..interpreter import EvaluationError, eval_aexp, eval_bexp, execute
 from ..interpreter.events import (
     BeforeStatement,
     Event,
@@ -268,8 +268,8 @@ class DebugSession:
                 result = str(eval_bexp(parse_bexp(expr), state)).lower()
         except SiplSyntaxError as exc:
             return [self._response(req, error=f"syntax error: {exc.diagnostics[0].message}")]
-        except UndefinedVariable as exc:
-            return [self._response(req, error=f"variable '{exc.name}' is not defined")]
+        except EvaluationError as exc:
+            return [self._response(req, error=str(exc))]
         return [self._response(req, {"result": result, "variablesReference": 0})]
 
     def _req_continue(self, req: dict[str, Any], args: dict[str, Any]) -> Messages:

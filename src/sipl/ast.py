@@ -28,8 +28,8 @@ class Var(Node):  # A2
 
 
 @dataclass(frozen=True)
-class BinOp(Node):  # A3 '+', A4 '-', A5 '*'
-    op: str  # "+" | "-" | "*"
+class BinOp(Node):  # A3 '+', A4 '-', A5 '*', A7 'div' (extension)
+    op: str  # "+" | "-" | "*" | "div"
     left: Aexp
     right: Aexp
 

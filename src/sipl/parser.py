@@ -84,7 +84,7 @@ class _Builder(Transformer[Token, Any]):
     def _bin(self, c: list[Any]) -> ast.BinOp:
         return ast.BinOp(_span(c[0], c[2]), str(c[1]), c[0], c[2])
 
-    add = sub = mul = _bin
+    add = sub = mul = div = _bin
 
     def num(self, c: list[Any]) -> ast.Num:
         return ast.Num(_span(c[0]), int(c[0]))

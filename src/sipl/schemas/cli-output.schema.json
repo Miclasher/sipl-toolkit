@@ -21,7 +21,7 @@
           "type": "object",
           "required": ["code", "message", "span"],
           "properties": {
-            "code": { "enum": ["undefined-variable", "step-limit-exceeded"] },
+            "code": { "enum": ["undefined-variable", "division-by-zero", "step-limit-exceeded"] },
             "message": { "type": "string" },
             "span": { "oneOf": [{ "type": "null" }, { "$ref": "#/$defs/span" }] }
           }

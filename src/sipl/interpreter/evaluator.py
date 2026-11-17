@@ -8,11 +8,29 @@ from .. import ast
 from ..spans import SourceSpan
 
 
-class UndefinedVariable(Exception):
+class EvaluationError(Exception):
+    """Base for errors that make a semantic function undefined at a state."""
+
+    code = "evaluation-error"
+
+    def __init__(self, message: str, span: SourceSpan) -> None:
+        self.span = span
+        super().__init__(message)
+
+
+class UndefinedVariable(EvaluationError):
+    code = "undefined-variable"
+
     def __init__(self, name: str, span: SourceSpan) -> None:
         self.name = name
-        self.span = span
-        super().__init__(f"variable '{name}' is not defined")
+        super().__init__(f"variable '{name}' is not defined", span)
+
+
+class DivisionByZero(EvaluationError):
+    code = "division-by-zero"
+
+    def __init__(self, span: SourceSpan) -> None:
+        super().__init__("division by zero", span)
 
 
 def eval_aexp(a: ast.Aexp, state: Mapping[str, int]) -> int:
@@ -33,6 +51,10 @@ def eval_aexp(a: ast.Aexp, state: Mapping[str, int]) -> int:
         return left - right
     if a.op == "*":
         return left * right
+    if a.op == "div":
+        if right == 0:
+            raise DivisionByZero(a.right.span)
+        return left // right  # floor division; equals the usual div on naturals
     raise ValueError(f"unknown arithmetic operator {a.op!r}")
 
 

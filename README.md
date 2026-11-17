@@ -132,7 +132,7 @@ program_finished state={'R': 2, 'X': 2, 'Y': 0}
 |---|---|
 | 0 | success |
 | 1 | syntax error |
-| 2 | runtime error (`undefined-variable`) or `step-limit-exceeded` |
+| 2 | runtime error (`undefined-variable`, `division-by-zero`) or `step-limit-exceeded` |
 | 64 | usage error (bad arguments, e.g. `--var X`) |
 | 66 | input file cannot be read |
 

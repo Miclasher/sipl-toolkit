@@ -16,5 +16,5 @@ renamed or removed.
 
 `span` = `{start, end, line, col, end_line, end_col}`; lines/columns are 1-based, offsets 0-based, end exclusive.
 
-Exit codes: `0` ok · `1` syntax error · `2` runtime error (`undefined-variable`) or `step-limit-exceeded` · `64` usage error · `66` input unreadable.
+Exit codes: `0` ok · `1` syntax error · `2` runtime error (`undefined-variable`, `division-by-zero`) or `step-limit-exceeded` · `64` usage error · `66` input unreadable.
 Step counting: each Assign, Skip, If and each loop-condition check is one step; `--max-steps` (default 100000) bounds execution.

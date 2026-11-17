@@ -114,7 +114,7 @@ class ProgramFinished(Event):
 class ExecutionError(Event):
     """Terminal event: runtime error or limit exceeded."""
 
-    code: str = ""  # "undefined-variable" | "step-limit-exceeded"
+    code: str = ""  # "undefined-variable" | "division-by-zero" | "step-limit-exceeded"
     message: str = ""
     span: SourceSpan | None = None
     state: tuple[tuple[str, int], ...] = ()

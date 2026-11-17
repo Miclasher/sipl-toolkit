@@ -14,7 +14,7 @@
     "keywords": {
       "patterns": [
         { "name": "keyword.control.sipl", "match": "\\b(begin|end|if|then|else|while|do|skip)\\b" },
-        { "name": "keyword.operator.word.sipl", "match": "\\b(or|not)\\b" }
+        { "name": "keyword.operator.word.sipl", "match": "\\b(or|not|div)\\b" }
       ]
     },
     "operators": {

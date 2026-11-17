@@ -108,3 +108,48 @@ def test_run_control_before_launch_and_double_configuration_done():
     assert not c.call("evaluate", expression="1")["success"]
     c.start(program=str(__import__("test_dap").POWER))
     assert not c.call("configurationDone")["success"]
+
+
+# ---- `div` extension ----
+def _run_src(src, **init):
+    return run(parse(src), init)
+
+
+def test_div_precedence_and_associativity():
+    assert _run_src("begin x := 20 div 3 * 2 end").state["x"] == 12  # (20 div 3) * 2
+    assert _run_src("begin x := 1 + 7 div 2 end").state["x"] == 4
+    assert _run_src("begin x := 100 div 5 div 2 end").state["x"] == 10
+    assert _run_src("begin x := 7 - 7 div 7 end").state["x"] == 6
+
+
+def test_div_ast_and_spans():
+    prog = parse("begin x := a div 2 end")
+    expr = prog.body.value
+    assert expr.op == "div" and (expr.span.col, expr.span.end_col) == (12, 19)
+
+
+def test_div_by_zero_is_runtime_error():
+    r = _run_src("begin x := 1 div y end", y=0)
+    assert r.status == "error" and r.error.code == "division-by-zero"
+    assert r.error.span.col == 18  # points at the divisor
+
+
+def test_div_floor_semantics_for_negatives():
+    assert _run_src("begin x := -7 div 2 end").state["x"] == -4
+
+
+def test_identifiers_starting_with_div_still_valid():
+    r = _run_src("begin divisor := 6; q := divisor div 2; div2 := q end")
+    assert r.state == {"divisor": 6, "q": 3, "div2": 3}
+
+
+def test_div_is_reserved():
+    with pytest.raises(SiplSyntaxError):
+        parse("begin div := 1 end")
+
+
+def test_div_in_debugger_evaluate_and_cli(capsys):
+    c = Client()
+    c.start(inputs={"X": 7, "Y": 0})
+    assert c.call("evaluate", expression="X div 2")["body"]["result"] == "3"
+    assert "division by zero" in c.call("evaluate", expression="X div Y")["message"]
