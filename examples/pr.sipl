@@ -1,0 +1,10 @@
+begin
+    X := 3;
+    Y := 28;
+    R := 0;
+    while Y > X - 1 do
+    begin
+        Y := Y div X;
+        R := R + 1
+    end
+end
