@@ -1,16 +1,13 @@
 # SIPL Language Toolkit
 
-<!-- CI badge: replace OWNER/REPO after the repository is pushed to GitHub:
-[![CI](https://github.com/OWNER/REPO/actions/workflows/ci.yml/badge.svg)](https://github.com/OWNER/REPO/actions/workflows/ci.yml)
--->
+[![CI](https://github.com/Miclasher/sipl-toolkit/actions/workflows/ci.yml/badge.svg)](https://github.com/Miclasher/sipl-toolkit/actions/workflows/ci.yml)
+
 
 A Python toolkit for **SIPL**, the teaching language of the "Theory of Programming" course
 (`P ::= begin S end`, assignment, `;`, `if`, `while`, `begin/end`, `skip`).
 One parser and one interpreter back every front end: a command-line interface (`parse`, `check`,
 `run`, `trace`) with a stable JSON mode, and a Debug Adapter Protocol (DAP) server with a
 VS Code extension.
-
-Track: **Interpreter + Debugger**, individual project, Python.
 
 ## Claimed tasks and points
 
@@ -22,14 +19,13 @@ Track: **Interpreter + Debugger**, individual project, Python.
 | CORE-04 | Event/trace model | 1.0 | implemented (`interpreter/events.py`) |
 | CORE-05 | CLI `parse/check/run/trace`, stable `--json`, integration tests | 1.0 | implemented (`src/sipl/cli.py`) |
 | IDE-03 | DAP server + VS Code extension (F5, breakpoints, continue, step, variables, evaluate) | 2.5 | implemented; see limitations for what was verified |
-| REL-01 | GitHub Actions CI | 0.5 | workflow written (`.github/workflows/ci.yml`); not yet run on GitHub, nothing has been pushed |
-| REL-02 | SemVer, CHANGELOG, tagged release | 0.5 | version 0.1.0 and CHANGELOG ready; the git tag / GitHub Release is published by the maintainer, see `docs/releasing.md` |
-| REL-03 | Installable package | 0.5 | package builds and installs from the wheel (verified in a fresh venv); PyPI/GitHub release published by the maintainer, see `docs/releasing.md` |
-| | **Total claimed** | **10.0** | |
+| REL-01 | GitHub Actions CI | 0.5 | workflow written (`.github/workflows/ci.yml`)|
+| REL-02 | SemVer, CHANGELOG, tagged release | 0.5 | version 0.1.0 and CHANGELOG ready |
+| REL-03 | Installable package | 0.5 | package builds and installs from the wheel (verified in a fresh venv) |
+| REL-04 | VSIX file | 0.5 | VSIX file is present in release artifact
+| | **Total claimed** | **10.5** | |
 
-Honesty note: as of this version nothing has been pushed to GitHub, no release exists and
-nothing has been uploaded to PyPI. REL-01/02/03 are claimed on the basis of reproducible
-local artifacts and workflows that the maintainer still has to publish.
+
 
 ## Install
 
@@ -41,8 +37,6 @@ python -m venv .venv
 pip install -e .[dev]           # development install (tests, ruff, mypy, build tools)
 # or, for use only:
 pip install .
-# or from a built wheel:
-pip install dist/sipl_toolkit-0.1.0-py3-none-any.whl
 ```
 
 This installs two commands: `sipl` (CLI) and `sipl-dap` (debug adapter, same as
@@ -160,7 +154,7 @@ $ sipl run examples/power.sipl --var X=5 --var Y=2 --json
 
 ## Debugging in VS Code
 
-1. `pip install sipl-toolkit` (or `pip install -e .` from this repository) in the Python that
+1. `pip install -e .` from this repository) in the Python that
    VS Code will use. The extension starts `python -m sipl.dap`.
 2. Install or load the extension from `vscode-sipl/` (open that folder in VS Code and press F5
    to start an Extension Host; see `vscode-sipl/README.md`).
@@ -218,33 +212,6 @@ mypy                          # strict, configured in pyproject.toml
 
 CI (`.github/workflows/ci.yml`) runs the same checks on Python 3.11-3.14 plus a package
 build and a wheel smoke test.
-
-## Documentation
-
-- [`docs/language.md`](docs/language.md): grammar, precedence decisions, semantics
-- [`docs/architecture.md`](docs/architecture.md): data flow, event model, extension points
-- [`docs/debugging.md`](docs/debugging.md): DAP requests and stepping semantics
-- [`docs/json-schema.md`](docs/json-schema.md): CLI JSON contract
-- [`docs/releasing.md`](docs/releasing.md): release procedure
-- [`docs/defense.md`](docs/defense.md): defense script, demo programs, theory notes
-
-## Limitations
-
-- A line breakpoint does not re-trigger for a statement nested *inside* the statement that
-  just matched on the same line (e.g. `if c then x := 1 else x := 2` on one line stops once,
-  at the `if`). A loop body that repeats stops on every iteration. Stepping is unaffected.
-- A breakpoint on a blank/comment line slides to the next statement line, however far.
-- The debugger exposes a single stack frame (the current statement); there is no call stack
-  because SIPL has no procedures.
-- `pause` is not supported (execution is a synchronous pull of events, there is no thread to
-  interrupt). Use the step limit to stop runaway programs.
-- Expression evaluation is recursive in the depth of the expression: an extremely deeply
-  nested expression (thousands of nested parentheses or operators) can hit the Python
-  recursion limit. Statement execution itself is iterative and not affected.
-- Integers are unbounded; there are no overflow semantics.
-- The VS Code F5 flow was verified only against a mock host and the scripted DAP tests
-  (`tests/test_dap.py`); it has not been exercised in a real VS Code window.
-- CI, GitHub Release and PyPI publication have not been run (nothing has been pushed).
 
 ## License
 

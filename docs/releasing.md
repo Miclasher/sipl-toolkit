@@ -31,14 +31,3 @@ Versions follow [SemVer](https://semver.org/). Releases are cut from `main`.
 - `release.yml` (tag `vX.Y.Z`): builds sdist and wheel, fails if the tag differs from the
   package version, creates a GitHub Release (auto-generated notes plus the CHANGELOG
   section) with `dist/*` attached, then optionally publishes to PyPI.
-
-## PyPI trusted publishing setup (one time)
-
-1. Create the project on PyPI (or add a *pending publisher* at
-   https://pypi.org/manage/account/publishing/ for the name `sipl-toolkit`).
-2. Publisher settings: owner = your GitHub user/org, repository = this repo,
-   workflow = `release.yml`, environment = `pypi`.
-3. In GitHub: Settings -> Environments -> create `pypi` (optionally require reviewers).
-4. In GitHub: Settings -> Secrets and variables -> Actions -> Variables -> add
-   `PUBLISH_TO_PYPI` = `true`. Without it, the publish job is skipped.
-5. Replace `OWNER/REPO` in the CHANGELOG compare links.

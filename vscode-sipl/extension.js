@@ -1,7 +1,7 @@
 'use strict';
 const vscode = require('vscode');
 
-const INSTALL_HINT = 'Install with: pip install sipl-toolkit';
+const INSTALL_HINT = 'Install with: git clone + pip install';
 
 async function pythonFromExtension() {
   try {

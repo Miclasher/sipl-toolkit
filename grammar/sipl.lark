@@ -1,9 +1,4 @@
-// SIPL grammar (LALR). Rule names in comments refer to the textbook BNF:
-//   P ::= begin S end
-//   S ::= x := a | S1 ; S2 | if b then S1 else S2 | while b do S | begin S end | skip
-//   a ::= n | x | a1 + a2 | a1 - a2 | a1 * a2 | (a)   (+ extension: a1 div a2)
-//   b ::= a1 = a2 | a1 > a2 | b1 or b2 | not b | (b)
-// Ambiguities are removed by stratifying the rules (see grammar/README.md).
+// SIPL grammar (LALR)
 
 // ---- start symbols ----
 program: BEGIN seq END                          // P1
